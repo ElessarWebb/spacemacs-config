@@ -3,7 +3,7 @@
 ;; It must be stored in your home directory.
 
 (defun setup-indent (n)
-  (electric-indent-mode -1)
+  ;; (electric-indent-mode -1)
 
   (setq-default indent-tabs-mode nil)
   (setq standard-indent 2)
@@ -38,6 +38,9 @@
    ;; of a list then all discovered layers will be installed.
    dotspacemacs-configuration-layers
    '(
+     windows-scripts
+     yaml
+     bison
      auto-completion
      better-defaults
      exec-path-from-shell
@@ -48,7 +51,6 @@
      markdown
      agda
      python
-     django
      guess-style
      scala
      javascript
@@ -60,6 +62,11 @@
      coq
      ranger
      elm
+     (c-c++ :variables c-c++-enable-clang-support t)
+     semantic
+     gtags
+     rust
+     nixos
      )
    ;; List of additional packages that will be installed without being
    ;; wrapped in a layer. If you need some configuration for these
@@ -78,6 +85,9 @@
    dotspacemacs-delete-orphan-packages t))
 
 (defun dotspacemacs/init ()
+  (setq shell-file-name "/bin/bash")
+  (setq projectile-enable-caching t)
+
   "Initialization function.
 This function is called at the very startup of Spacemacs initialization
 before layers configuration."
@@ -102,14 +112,14 @@ before layers configuration."
    ;; List of themes, the first of the list is loaded when spacemacs starts.
    ;; Press <SPC> T n to cycle to the next theme in the list (works great
    ;; with 2 themes variants, one dark and one light)
-   dotspacemacs-themes '(solarized-dark
-                         solarized-light)
+   dotspacemacs-themes '(solarized-light
+                         solarized-dark)
    ;; If non nil the cursor color matches the state color.
    dotspacemacs-colorize-cursor-according-to-state t
    ;; Default font. `powerline-scale' allows to quickly tweak the mode-line
    ;; size to make separators look not too crappy.
    dotspacemacs-default-font '("Source Code Pro"
-                               :size 15
+                               :size 24
                                :weight normal
                                :width normal
                                :powerline-scale 1.1)
@@ -192,8 +202,11 @@ before layers configuration."
   (if (equal major-mode 'js2-mode) (web-mode) (js2-mode))
 )
 
-(defun dotspacemacs/config ()
+(defun dotspacemacs/user-config ()
   (setup-indent 2)
+
+  ;; fix undo behaviour
+  (setq evil-in-single-undo t)
 
   ;; editor config
   (spacemacs/toggle-line-numbers)
@@ -244,8 +257,40 @@ before layers configuration."
   (setq-default fill-column 80)
 
   (linum-relative-toggle)
+
+  ;; c
+  (c-add-style "s&t"
+               '((indent-tabs-mode . nil)
+                 (c-basic-offset . 4)
+                 (c-offsets-alist
+                  (substatement-open . 0)
+                  (inline-open . 0))))
+
+  (setq c-default-style "linux"
+        c-basic-offset 4)
+  ;; (push '(other . "s&t") c-default-style)
+
+  ;; rust
+  (setq-default rust-enable-racer t)
+  (add-hook 'rust-mode-hook #'racer-mode)
+  (add-hook 'racer-mode-hook #'eldoc-mode)
 )
 
 
 ;; Do not write anything past this comment. This is where Emacs will
 ;; auto-generate custom variable definitions.
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(evil-want-Y-yank-to-eol nil)
+ '(package-selected-packages
+   (quote
+    (xkcd selectric-mode powershell yaml-mode wgrep smex ivy-hydra counsel-projectile counsel swiper ivy yapfify uuidgen toc-org py-isort pug-mode org-plus-contrib org-bullets mwim livid-mode skewer-mode simple-httpd live-py-mode link-hint intero hlint-refactor helm-hoogle git-link eyebrowse evil-visual-mark-mode evil-unimpaired evil-ediff eshell-z dumb-jump company-ghci column-enforce-mode cargo xterm-color ws-butler window-numbering which-key web-mode web-beautify volatile-highlights vi-tilde-fringe use-package toml-mode tagedit stickyfunc-enhance srefactor spacemacs-theme spaceline solarized-theme smooth-scrolling smeargle slim-mode shm shell-pop scss-mode sass-mode restart-emacs ranger rainbow-delimiters racer quelpa pyvenv pytest pyenv-mode py-yapf popwin pip-requirements persp-mode pcre2el paradox page-break-lines orgit open-junk-file noflet nix-mode neotree multi-term move-text mmm-mode markdown-toc magit-gitflow macrostep lorem-ipsum linum-relative leuven-theme less-css-mode json-mode js2-refactor js-doc jade-mode info+ indent-guide ido-vertical-mode hy-mode hungry-delete hl-todo hindent highlight-parentheses highlight-numbers highlight-indentation help-fns+ helm-themes helm-swoop helm-pydoc helm-projectile helm-nixos-options helm-mode-manager helm-make helm-gtags helm-gitignore helm-flx helm-descbinds helm-css-scss helm-company helm-c-yasnippet helm-ag haskell-snippets google-translate golden-ratio gitconfig-mode gitattributes-mode git-timemachine git-messenger git-gutter-fringe git-gutter-fringe+ gh-md ggtags flycheck-rust flycheck-pos-tip flycheck-haskell flycheck-elm flx-ido fill-column-indicator fancy-battery expand-region exec-path-from-shell evil-visualstar evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-args evil-anzu eval-sexp-fu eshell-prompt-extras esh-help ensime emmet-mode elm-mode elisp-slime-nav editorconfig disaster diff-hl define-word cython-mode company-web company-tern company-statistics company-racer company-quickhelp company-nixos-options company-ghc company-cabal company-c-headers company-auctex company-anaconda coffee-mode cmm-mode cmake-mode clean-aindent-mode clang-format buffer-move bracketed-paste auto-yasnippet auto-highlight-symbol auto-compile auctex-latexmk aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line ac-ispell))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
